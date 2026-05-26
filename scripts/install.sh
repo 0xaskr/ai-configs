@@ -155,12 +155,51 @@ deploy() {
   info "Codex （直接读取项目内 AGENTS.md，无需全局安装）"
 }
 
+# ── Skill 部署 ─────────────────────────────────────────────────────────
+deploy_skills() {
+  local skills_src="$REPO_DIR/.agents/skills"
+  if [ ! -d "$skills_src" ]; then
+    return
+  fi
+
+  # 各工具的全局 skills 目录
+  local -A tool_skills_dirs=(
+    ["Claude Code"]="$HOME/.claude/skills"
+    ["Gemini CLI"]="$HOME/.gemini/skills"
+    ["OpenCode"]="$HOME/.config/opencode/skills"
+  )
+
+  echo ""
+  info "部署 Skills …"
+  echo ""
+
+  for tool in "${!tool_skills_dirs[@]}"; do
+    local dest="${tool_skills_dirs[$tool]}"
+    mkdir -p "$dest"
+    for skill_dir in "$skills_src"/*/; do
+      local name=$(basename "$skill_dir")
+      local target="$dest/$name"
+      if [ -L "$target" ]; then
+        rm -f "$target"
+      elif [ -d "$target" ]; then
+        mv "$target" "${target}${BACKUP_SUFFIX}"
+        info "备份: ${target} → ${target}${BACKUP_SUFFIX}"
+      fi
+      ln -sfn "$skill_dir" "$target"
+    done
+    ok "${tool} 技能已部署"
+  done
+
+  info "Codex — 项目级 skills，需在项目 .codex/skills/ 下手动部署"
+}
+
 # ── 主流程 ───────────────────────────────────────────────────────────
 main() {
   printf "\n  ${BOLD}${MAGENTA}▊ ai-configs${RESET}\n\n"
 
   acquire_repo
   deploy
+  deploy_skills
 
   echo ""
   ok "安装完成"

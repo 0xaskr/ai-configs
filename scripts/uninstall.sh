@@ -10,6 +10,12 @@ TARGETS=(
     "$HOME/.gemini/GEMINI.md"
 )
 
+SKILL_DIRS=(
+    "$HOME/.claude/skills"
+    "$HOME/.gemini/skills"
+    "$HOME/.config/opencode/skills"
+)
+
 echo "ai-configs 卸载脚本"
 echo "================================"
 
@@ -33,6 +39,20 @@ for target in "${TARGETS[@]}"; do
         echo "  恢复: $latest_backup → $target"
     else
         echo "  无备份可恢复"
+    fi
+done
+
+# 清理 skill 符号链接
+echo ""
+echo "[Skills]"
+for skills_dir in "${SKILL_DIRS[@]}"; do
+    if [ -d "$skills_dir" ]; then
+        for link in "$skills_dir"/*/; do
+            if [ -L "$link" ]; then
+                rm -f "$link"
+                echo "  删除链接: $link"
+            fi
+        done
     fi
 done
 
