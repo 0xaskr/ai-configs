@@ -4,44 +4,69 @@ AI 编码工具的 dotfiles 仓库。
 
 ## 理念
 
-就像 dotfiles 统一管理 shell 和编辑器配置，本仓库统一管理所有 AI 编码工具的行为规范。核心是一份工具无关的 `AGENTS.md`，定义跨工具通用的偏好、工作风格和技能注册表。各工具通过各自的 adapter 接入，无需重复维护多份指令。Fork 后按自己的习惯修改 `AGENTS.md` 即可完成定制。
-
-## 三层架构
-
-| 层 | 内容 |
-|---|---|
-| **Core** | `AGENTS.md` — 工具无关的全局指令，所有工具共用 |
-| **Adapter** | `adapters/` — 各工具的接入方式（shim、settings、命令） |
-| **Settings** | `settings.local.json` 等 — 项目级权限与运行时配置 |
+就像 dotfiles 统一管理 shell 和编辑器配置，本仓库统一管理所有 AI 编码工具的行为规范。所有配置集中在 `.agents/` 目录，作为唯一源头。各工具通过安装脚本部署到对应的全局入口文件，无需重复维护多份指令。Fork 后修改 `.agents/AGENTS.md` 即可完成定制。
 
 ## 仓库结构
 
 ```
 ai-configs/
-├── AGENTS.md              # 全局指令（核心，给 AI 读）
-├── CLAUDE.md              # Claude Code shim → AGENTS.md
-├── adapters/
-│   ├── claude.md          # Claude Code 适配说明
-│   ├── gemini.md          # Gemini CLI 适配说明
-│   └── codex.md           # OpenAI Codex 适配说明
-├── skills/
-│   └── tpu-kernel-perf.md # TPU kernel 性能分析技能
-└── docs/                  # 设计文档
+├── .agents/                    # 配置源头（唯一真相来源）
+│   ├── AGENTS.md               # 全局指令（核心，给 AI 读）
+│   ├── adapters/               # 各工具适配说明
+│   │   ├── claude.md
+│   │   ├── gemini.md
+│   │   └── codex.md
+│   ├── skills/                 # 技能文件
+│   │   ├── tpu-kernel-perf.md
+│   │   ├── kernel-design-review.md
+│   │   └── pr-review.md
+│   └── commands/               # 自定义命令（待扩展）
+├── scripts/
+│   ├── install.sh              # 安装脚本
+│   └── uninstall.sh            # 卸载脚本
+└── docs/                       # 设计文档
 ```
 
-## 使用方式
+## 安装
 
-1. Fork 本仓库到自己的账号
-2. Clone 到本地，例如 `~/dotfiles/ai-configs`
-3. 修改 `AGENTS.md`，写入自己的偏好和行为规范
-4. 按下表配置各工具的 shim，指向本仓库的 `AGENTS.md`
+一键安装：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/0xaskr/ai-configs/main/scripts/install.sh | bash
+```
+
+也可 Fork 后安装自己的仓库：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/<你>/ai-configs/main/scripts/install.sh | bash
+```
+
+选项：
+
+| 参数 | 说明 | 默认值 |
+|---|---|---|
+| `--repo <url>` | 仓库地址 | `https://github.com/0xaskr/ai-configs.git` |
+| `--branch <name>` | 分支 | `main` |
+| `--dir <path>` | 本地存放路径 | `~/ai-configs` |
+| `-y` / `--yes` | 跳过交互确认 | 关闭 |
+| `--uninstall` | 卸载并恢复备份 | — |
+
+从仓库内直接运行：
+
+```bash
+./scripts/install.sh
+```
+
+## 定制
+
+Fork 本仓库后，修改 `.agents/AGENTS.md` 写入自己的偏好，重新运行安装脚本即可生效。
 
 ## 各工具接入方式
 
 | 工具 | 全局入口文件 | 接入方式 |
 |---|---|---|
-| Claude Code | `~/.claude/CLAUDE.md` | shim 文件，内容指向本仓库 `AGENTS.md` |
-| Gemini CLI | `~/.gemini/GEMINI.md` | shim 文件，内容指向本仓库 `AGENTS.md` |
-| OpenAI Codex | `AGENTS.md` | 直接读取，无需 shim，开箱即用 |
+| Claude Code | `~/.claude/CLAUDE.md` | 安装脚本将 `.agents/AGENTS.md` + `.agents/adapters/claude.md` 拼接写入 |
+| Gemini CLI | `~/.gemini/GEMINI.md` | 安装脚本将 `.agents/AGENTS.md` + `.agents/adapters/gemini.md` 拼接写入 |
+| OpenAI Codex | 项目内 `AGENTS.md` | 将 `.agents/AGENTS.md` 直接复制到目标项目的 `AGENTS.md` |
 
-各工具的详细配置（settings、权限、自定义命令）见 `adapters/` 目录。
+各工具的详细配置（settings、权限、自定义命令）见 `.agents/adapters/` 目录。
