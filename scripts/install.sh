@@ -68,6 +68,10 @@ acquire_repo() {
   fi
 
   # curl pipe 模式 —— 克隆仓库
+  if ! command -v git >/dev/null 2>&1; then
+    fail "未找到 git，请先安装 git"
+  fi
+
   if [ ! -d "$INSTALL_DIR" ]; then
     info "克隆到 ${BOLD}${INSTALL_DIR}${RESET} …"
     git clone --branch "$BRANCH" "$REPO_URL" "$INSTALL_DIR" 2>&1 | while IFS= read -r line; do
@@ -81,11 +85,11 @@ acquire_repo() {
       case "${yn:-y}" in
         [Nn]*) info "跳过更新" ;;
         *)      info "git pull …"
-                git -C "$INSTALL_DIR" pull --ff-only origin "$BRANCH" ;;
+                git -C "$INSTALL_DIR" pull --ff-only origin "$BRANCH" || warn "pull 失败，继续使用已有版本" ;;
       esac
     else
       info "git pull …"
-      git -C "$INSTALL_DIR" pull --ff-only origin "$BRANCH" || true
+      git -C "$INSTALL_DIR" pull --ff-only origin "$BRANCH" || warn "pull 失败，继续使用已有版本"
     fi
   fi
   REPO_DIR="$INSTALL_DIR"

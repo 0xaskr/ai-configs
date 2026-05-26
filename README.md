@@ -65,8 +65,10 @@ Fork 本仓库后，修改 `.agents/AGENTS.md` 写入自己的偏好，重新运
 
 | 工具 | 全局入口文件 | 接入方式 |
 |---|---|---|
-| Claude Code | `~/.claude/CLAUDE.md` | 安装脚本将 `.agents/AGENTS.md` + `.agents/adapters/claude.md` 拼接写入 |
-| Gemini CLI | `~/.gemini/GEMINI.md` | 安装脚本将 `.agents/AGENTS.md` + `.agents/adapters/gemini.md` 拼接写入 |
-| OpenAI Codex | 项目内 `AGENTS.md` | 将 `.agents/AGENTS.md` 直接复制到目标项目的 `AGENTS.md` |
+| Claude Code | `~/.claude/CLAUDE.md` | 重定向到 `.agents/AGENTS.md` |
+| Gemini CLI | `~/.gemini/GEMINI.md` | 重定向到 `.agents/AGENTS.md` |
+| OpenAI Codex | 项目内 `AGENTS.md` | 直接读取项目内的 `AGENTS.md`，无需全局安装 |
+
+`.agents/AGENTS.md` 是唯一源头，各工具的全局入口文件是轻量重定向 shim。
 
 各工具的详细配置（settings、权限、自定义命令）见 `.agents/adapters/` 目录。
