@@ -54,6 +54,8 @@
 | 触发条件 | 技能文件 |
 |---|---|
 | 分析 TPU kernel 性能、roofline、tiling | `skills/tpu-kernel-perf.md` |
+| 审查 kernel 设计文档、design doc、设计提案 | `skills/kernel-design-review.md` |
+| 审查 Pull Request、review 代码变更、分析 diff | `skills/pr-review.md` |
 
 ---
 
