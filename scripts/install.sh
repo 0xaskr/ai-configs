@@ -12,7 +12,6 @@ set -euo pipefail
 # ── 默认值 ───────────────────────────────────────────────────────────
 REPO_URL="${AI_CONFIGS_REPO:-https://github.com/0xaskr/ai-configs.git}"
 BRANCH="${AI_CONFIGS_BRANCH:-main}"
-INSTALL_DIR="${AI_CONFIGS_DIR:-$HOME/ai-configs}"
 YES="${AI_CONFIGS_YES:-0}"
 
 # ── 颜色 ─────────────────────────────────────────────────────────────
@@ -35,19 +34,23 @@ while [ $# -gt 0 ]; do
   case "$1" in
     --repo)   REPO_URL="$2"; shift 2 ;;
     --branch) BRANCH="$2"; shift 2 ;;
-    --dir)    INSTALL_DIR="$2"; shift 2 ;;
     -y|--yes) YES=1; shift ;;
     --uninstall)
-      # 路由到卸载
-      if [ -f "$INSTALL_DIR/scripts/uninstall.sh" ]; then
-        bash "$INSTALL_DIR/scripts/uninstall.sh"
-        exit $?
-      fi
       exec bash <(curl -fsSL "https://raw.githubusercontent.com/0xaskr/ai-configs/${BRANCH}/scripts/uninstall.sh")
       ;;
     *) shift ;;
   esac
 done
+
+# ── 清理函数 ─────────────────────────────────────────────────────────
+CLEANUP_DIR=""
+
+cleanup() {
+  if [ -n "$CLEANUP_DIR" ] && [ -d "$CLEANUP_DIR" ]; then
+    rm -rf "$CLEANUP_DIR"
+  fi
+}
+trap cleanup EXIT
 
 # ── 检测是否已在仓库内 ───────────────────────────────────────────────
 in_repo() {
@@ -67,32 +70,17 @@ acquire_repo() {
     return
   fi
 
-  # curl pipe 模式 —— 克隆仓库
   if ! command -v git >/dev/null 2>&1; then
     fail "未找到 git，请先安装 git"
   fi
 
-  if [ ! -d "$INSTALL_DIR" ]; then
-    info "克隆到 ${BOLD}${INSTALL_DIR}${RESET} …"
-    git clone --branch "$BRANCH" "$REPO_URL" "$INSTALL_DIR" 2>&1 | while IFS= read -r line; do
-      echo "        $line"
-    done
-    ok "仓库已克隆"
-  else
-    info "目录已存在: ${BOLD}${INSTALL_DIR}${RESET}"
-    if [ "$YES" -ne 1 ]; then
-      read -r -p "  ${CYAN}?${RESET} 重新拉取? (git pull) [Y/n] " yn
-      case "${yn:-y}" in
-        [Nn]*) info "跳过更新" ;;
-        *)      info "git pull …"
-                git -C "$INSTALL_DIR" pull --ff-only origin "$BRANCH" || warn "pull 失败，继续使用已有版本" ;;
-      esac
-    else
-      info "git pull …"
-      git -C "$INSTALL_DIR" pull --ff-only origin "$BRANCH" || warn "pull 失败，继续使用已有版本"
-    fi
-  fi
-  REPO_DIR="$INSTALL_DIR"
+  CLEANUP_DIR="$(mktemp -d /tmp/ai-configs.XXXXXX)"
+  info "克隆到 ${BOLD}${CLEANUP_DIR}${RESET} …"
+  git clone --depth 1 --branch "$BRANCH" "$REPO_URL" "$CLEANUP_DIR" 2>&1 | while IFS= read -r line; do
+    echo "        $line"
+  done
+  ok "仓库已克隆"
+  REPO_DIR="$CLEANUP_DIR"
 }
 
 # ── 第二阶段：部署配置 ───────────────────────────────────────────────
@@ -103,6 +91,16 @@ backup_if_exists() {
   if [ -f "$file" ] && [ ! -L "$file" ]; then
     cp "$file" "${file}${BACKUP_SUFFIX}"
     info "备份: ${file} → ${file}${BACKUP_SUFFIX}"
+  fi
+}
+
+backup_dir_if_exists() {
+  local dir="$1"
+  if [ -d "$dir" ] && [ ! -L "$dir" ]; then
+    mv "$dir" "${dir}${BACKUP_SUFFIX}"
+    info "备份: ${dir} → ${dir}${BACKUP_SUFFIX}"
+  elif [ -L "$dir" ]; then
+    rm -f "$dir"
   fi
 }
 
@@ -155,6 +153,26 @@ deploy() {
   info "Codex （直接读取项目内 AGENTS.md，无需全局安装）"
 }
 
+# ── .agents 部署 ──────────────────────────────────────────────────────
+deploy_agents() {
+  local agents_src="$REPO_DIR/.agents"
+  local agents_dst="$HOME/.agents"
+
+  if [ ! -d "$agents_src" ]; then
+    return
+  fi
+
+  echo ""
+  info "部署 .agents …"
+  echo ""
+
+  backup_dir_if_exists "$agents_dst"
+
+  cp -r "$agents_src" "$agents_dst"
+
+  ok ".agents 已部署到 ${agents_dst}"
+}
+
 # ── Skill 部署 ─────────────────────────────────────────────────────────
 deploy_skills() {
   local skills_src="$REPO_DIR/.agents/skills"
@@ -162,7 +180,6 @@ deploy_skills() {
     return
   fi
 
-  # 各工具的全局 skills 目录
   local -A tool_skills_dirs=(
     ["Claude Code"]="$HOME/.claude/skills"
     ["Gemini CLI"]="$HOME/.gemini/skills"
@@ -175,18 +192,12 @@ deploy_skills() {
 
   for tool in "${!tool_skills_dirs[@]}"; do
     local dest="${tool_skills_dirs[$tool]}"
-    mkdir -p "$dest"
-    for skill_dir in "$skills_src"/*/; do
-      local name=$(basename "$skill_dir")
-      local target="$dest/$name"
-      if [ -L "$target" ]; then
-        rm -f "$target"
-      elif [ -d "$target" ]; then
-        mv "$target" "${target}${BACKUP_SUFFIX}"
-        info "备份: ${target} → ${target}${BACKUP_SUFFIX}"
-      fi
-      ln -sfn "$skill_dir" "$target"
-    done
+    mkdir -p "$(dirname "$dest")"
+
+    backup_dir_if_exists "$dest"
+
+    cp -r "$skills_src" "$dest"
+
     ok "${tool} 技能已部署"
   done
 
@@ -199,17 +210,16 @@ main() {
 
   acquire_repo
   deploy
+  deploy_agents
   deploy_skills
 
   echo ""
   ok "安装完成"
   echo ""
-  echo "  仓库: ${DIM}${REPO_DIR}${RESET}"
-  echo ""
   echo "  下一步:"
   echo "    - 检查 ~/.claude/CLAUDE.md 确认内容正确"
-  echo "    - 修改 ${BOLD}.agents/AGENTS.md${RESET} 后重新运行安装即可更新"
-  echo "    - 运行 ${DIM}${INSTALL_DIR}/scripts/uninstall.sh${RESET} 可恢复原始配置"
+  echo "    - 检查 ~/.agents/ 确认内容完整"
+  echo "    - 运行 curl -fsSL ${REPO_URL%.git}/raw/${BRANCH}/scripts/uninstall.sh | bash 可恢复原始配置"
   echo ""
 }
 
