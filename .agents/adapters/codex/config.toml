@@ -1,0 +1,32 @@
+model = "gpt-5.5"
+model_reasoning_effort = "xhigh"
+plan_mode_reasoning_effort = "medium"
+approval_policy = "on-request"
+approvals_reviewer = "guardian_subagent"
+sandbox_mode = "workspace-write"
+web_search = "cached"
+personality = "pragmatic"
+commit_attribution = "Codex <noreply@openai.com>"
+
+[features]
+memories = true
+multi_agent = true
+hooks = true
+shell_snapshot = true
+undo = true
+codex_git_commit = true
+
+[memories]
+generate_memories = true
+use_memories = true
+max_rollout_age_days = 30
+
+[history]
+persistence = "save-all"
+
+[tui]
+notifications = true
+show_tooltips = false
+
+[notice]
+hide_rate_limit_model_nudge = true

@@ -142,15 +142,109 @@ deploy() {
   info "部署配置 …"
   echo ""
 
-  install_config "Claude Code" \
-    "$REPO_DIR/.agents/adapters/claude.md" \
-    "$HOME/.claude/CLAUDE.md"
-
   install_config "Gemini CLI" \
     "$REPO_DIR/.agents/adapters/gemini.md" \
     "$HOME/.gemini/GEMINI.md"
+}
 
-  info "Codex （直接读取项目内 AGENTS.md，无需全局安装）"
+# ── Claude settings 部署 ──────────────────────────────────────────────
+deploy_claude_settings() {
+  local settings_src="$REPO_DIR/.agents/adapters/claude"
+  if [ ! -d "$settings_src" ]; then
+    return
+  fi
+
+  echo ""
+  info "部署 Claude settings …"
+  echo ""
+
+  local claude_dir="$HOME/.claude"
+  mkdir -p "$claude_dir"
+
+  # CLAUDE.md — 直接覆盖
+  if [ -f "$settings_src/CLAUDE.md" ]; then
+    backup_if_exists "$claude_dir/CLAUDE.md"
+    cp "$settings_src/CLAUDE.md" "$claude_dir/CLAUDE.md"
+    ok "CLAUDE.md → ${claude_dir}/CLAUDE.md"
+  fi
+
+  # settings.json — 直接覆盖
+  if [ -f "$settings_src/settings.json" ]; then
+    backup_if_exists "$claude_dir/settings.json"
+    cp "$settings_src/settings.json" "$claude_dir/settings.json"
+    ok "settings.json → ${claude_dir}/settings.json"
+  fi
+
+  # settings.local.json — 仅在不存在时部署（模板，不覆盖）
+  if [ -f "$settings_src/settings.local.json.template" ] && [ ! -f "$claude_dir/settings.local.json" ]; then
+    cp "$settings_src/settings.local.json.template" "$claude_dir/settings.local.json"
+    ok "settings.local.json（模板）→ ${claude_dir}/settings.local.json"
+  elif [ -f "$claude_dir/settings.local.json" ]; then
+    info "settings.local.json 已存在，跳过（不覆盖）"
+  fi
+}
+
+# ── Codex settings 部署 ───────────────────────────────────────────────
+deploy_codex_settings() {
+  local settings_src="$REPO_DIR/.agents/adapters/codex"
+  if [ ! -d "$settings_src" ]; then
+    return
+  fi
+
+  echo ""
+  info "部署 Codex settings …"
+  echo ""
+
+  local codex_dir="$HOME/.codex"
+  mkdir -p "$codex_dir"
+
+  # config.toml — 合并全局设置（不覆盖项目信任列表）
+  if [ -f "$settings_src/config.toml" ]; then
+    if [ -f "$codex_dir/config.toml" ]; then
+      # 已有 config.toml，只更新全局设置行（保留 [projects.*] 等本地内容）
+      local tmp="$(mktemp)"
+      # 写入仓库中的全局设置
+      cat "$settings_src/config.toml" > "$tmp"
+      # 追加已有文件中的 [projects.*] 和 [tui.*] 段
+      sed -n '/^\[projects\./,/^$/p; /^\[tui\./,/^$/p' "$codex_dir/config.toml" >> "$tmp"
+      backup_if_exists "$codex_dir/config.toml"
+      mv "$tmp" "$codex_dir/config.toml"
+      ok "config.toml → ${codex_dir}/config.toml（合并，保留项目信任列表）"
+    else
+      cp "$settings_src/config.toml" "$codex_dir/config.toml"
+      ok "config.toml → ${codex_dir}/config.toml"
+    fi
+  fi
+
+  # rules — 强行覆盖
+  if [ -d "$settings_src/rules" ]; then
+    mkdir -p "$codex_dir/rules"
+    backup_if_exists "$codex_dir/rules/default.rules"
+    cp "$settings_src/rules/default.rules" "$codex_dir/rules/default.rules"
+    ok "rules/default.rules → ${codex_dir}/rules/default.rules"
+  fi
+}
+
+# ── OpenCode settings 部署 ────────────────────────────────────────────
+deploy_opencode_settings() {
+  local settings_src="$REPO_DIR/.agents/adapters/opencode"
+  if [ ! -d "$settings_src" ]; then
+    return
+  fi
+
+  echo ""
+  info "部署 OpenCode settings …"
+  echo ""
+
+  local opencode_dir="$HOME/.config/opencode"
+  mkdir -p "$opencode_dir"
+
+  # opencode.jsonc — 直接覆盖
+  if [ -f "$settings_src/opencode.jsonc" ]; then
+    backup_if_exists "$opencode_dir/opencode.jsonc"
+    cp "$settings_src/opencode.jsonc" "$opencode_dir/opencode.jsonc"
+    ok "opencode.jsonc → ${opencode_dir}/opencode.jsonc"
+  fi
 }
 
 # ── .agents 部署 ──────────────────────────────────────────────────────
@@ -183,6 +277,7 @@ deploy_skills() {
   local -A tool_skills_dirs=(
     ["Claude Code"]="$HOME/.claude/skills"
     ["Gemini CLI"]="$HOME/.gemini/skills"
+    ["Codex"]="$HOME/.codex/skills"
     ["OpenCode"]="$HOME/.config/opencode/skills"
   )
 
@@ -200,8 +295,6 @@ deploy_skills() {
 
     ok "${tool} 技能已部署"
   done
-
-  info "Codex — 项目级 skills，需在项目 .codex/skills/ 下手动部署"
 }
 
 # ── 主流程 ───────────────────────────────────────────────────────────
@@ -210,6 +303,9 @@ main() {
 
   acquire_repo
   deploy
+  deploy_claude_settings
+  deploy_codex_settings
+  deploy_opencode_settings
   deploy_agents
   deploy_skills
 

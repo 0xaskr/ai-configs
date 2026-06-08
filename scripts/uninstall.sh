@@ -7,6 +7,9 @@ set -euo pipefail
 
 TARGETS=(
     "$HOME/.claude/CLAUDE.md"
+    "$HOME/.claude/settings.json"
+    "$HOME/.codex/config.toml"
+    "$HOME/.config/opencode/opencode.jsonc"
     "$HOME/.gemini/GEMINI.md"
 )
 

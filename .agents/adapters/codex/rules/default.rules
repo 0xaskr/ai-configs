@@ -1,0 +1,69 @@
+# Codex 安全规则
+# 禁止危险操作，与 Claude settings.json deny 规则对齐
+
+prefix_rule(
+    pattern = ["rm", "-rf"],
+    decision = "forbidden",
+    justification = "禁止递归强制删除，使用 rm -r 并确认",
+    match = ["rm -rf /", "rm -rf ~", "rm -rf ."],
+)
+
+prefix_rule(
+    pattern = ["git", "push", "--force"],
+    decision = "forbidden",
+    justification = "禁止 force push，使用 --force-with-lease",
+    match = ["git push --force origin main"],
+)
+
+prefix_rule(
+    pattern = ["git", "reset", "--hard"],
+    decision = "forbidden",
+    justification = "禁止 hard reset，会丢失未提交的工作",
+    match = ["git reset --hard HEAD~1", "git reset --hard origin/main"],
+)
+
+# 常用只读命令 — 免确认
+prefix_rule(
+    pattern = ["git", "status"],
+    decision = "allow",
+)
+
+prefix_rule(
+    pattern = ["git", "diff"],
+    decision = "allow",
+)
+
+prefix_rule(
+    pattern = ["git", "log"],
+    decision = "allow",
+)
+
+prefix_rule(
+    pattern = ["git", "branch"],
+    decision = "allow",
+)
+
+prefix_rule(
+    pattern = ["git", "show"],
+    decision = "allow",
+)
+
+prefix_rule(
+    pattern = ["gh", "pr"],
+    decision = "allow",
+)
+
+prefix_rule(
+    pattern = ["gh", "issue"],
+    decision = "allow",
+)
+
+prefix_rule(
+    pattern = ["uv", "run"],
+    decision = "allow",
+)
+
+prefix_rule(
+    pattern = ["rg"],
+    decision = "allow",
+)

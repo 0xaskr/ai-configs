@@ -13,9 +13,18 @@ ai-configs/
 ├── .agents/                    # 配置源头（唯一真相来源）
 │   ├── AGENTS.md               # 全局指令（核心，给 AI 读）
 │   ├── adapters/               # 各工具适配说明
-│   │   ├── claude.md
-│   │   ├── gemini.md
-│   │   └── codex.md
+│   │   ├── claude/             # Claude 配置源文件
+│   │   │   ├── README.md
+│   │   │   ├── CLAUDE.md
+│   │   │   └── settings.json
+│   │   ├── codex/              # Codex 配置源文件
+│   │   │   ├── README.md
+│   │   │   ├── config.toml
+│   │   │   └── rules/default.rules
+│   │   ├── opencode/           # OpenCode 配置源文件
+│   │   │   ├── README.md
+│   │   │   └── opencode.jsonc
+│   │   └── gemini.md
 │   ├── skills/                 # 技能文件
 │   │   ├── tpu-kernel-perf.md
 │   │   ├── kernel-design-review.md
@@ -65,10 +74,11 @@ Fork 本仓库后，修改 `.agents/AGENTS.md` 写入自己的偏好，重新运
 
 | 工具 | 全局入口文件 | 接入方式 |
 |---|---|---|
-| Claude Code | `~/.claude/CLAUDE.md` | 重定向到 `.agents/AGENTS.md` |
+| Claude Code | `~/.claude/CLAUDE.md` | 从 `.agents/adapters/claude/` 直接部署 |
+| Codex | `~/.codex/config.toml` | 从 `.agents/adapters/codex/` 合并部署 |
+| OpenCode | `~/.config/opencode/opencode.jsonc` | 从 `.agents/adapters/opencode/` 直接部署 |
 | Gemini CLI | `~/.gemini/GEMINI.md` | 重定向到 `.agents/AGENTS.md` |
-| OpenAI Codex | 项目内 `AGENTS.md` | 直接读取项目内的 `AGENTS.md`，无需全局安装 |
 
-`.agents/AGENTS.md` 是唯一源头，各工具的全局入口文件是轻量重定向 shim。
+所有工具的全局指令均来自 `~/.agents/AGENTS.md`（由 install.sh 从 `.agents/AGENTS.md` 部署）。
 
 各工具的详细配置（settings、权限、自定义命令）见 `.agents/adapters/` 目录。
