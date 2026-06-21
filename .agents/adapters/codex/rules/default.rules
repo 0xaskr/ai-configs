@@ -49,6 +49,61 @@ prefix_rule(
 )
 
 prefix_rule(
+    pattern = ["git", "remote"],
+    decision = "allow",
+)
+
+prefix_rule(
+    pattern = ["git", "tag"],
+    decision = "allow",
+)
+
+prefix_rule(
+    pattern = ["git", "blame"],
+    decision = "allow",
+)
+
+prefix_rule(
+    pattern = ["git", "rev-parse"],
+    decision = "allow",
+)
+
+prefix_rule(
+    pattern = ["git", "rev-list"],
+    decision = "allow",
+)
+
+prefix_rule(
+    pattern = ["git", "ls-files"],
+    decision = "allow",
+)
+
+prefix_rule(
+    pattern = ["git", "ls-tree"],
+    decision = "allow",
+)
+
+prefix_rule(
+    pattern = ["git", "describe"],
+    decision = "allow",
+)
+
+prefix_rule(
+    pattern = ["git", "stash"],
+    decision = "allow",
+)
+
+prefix_rule(
+    pattern = ["git", "reflog"],
+    decision = "allow",
+)
+
+prefix_rule(
+    pattern = ["git", "fetch"],
+    decision = "allow",
+)
+
+prefix_rule(
     pattern = ["gh", "pr"],
     decision = "allow",
 )
