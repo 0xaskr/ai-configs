@@ -122,3 +122,115 @@ prefix_rule(
     pattern = ["rg"],
     decision = "allow",
 )
+
+# kubectl 只读命令 — 免确认
+prefix_rule(
+    pattern = ["kubectl", "get"],
+    decision = "allow",
+)
+
+prefix_rule(
+    pattern = ["kubectl", "describe"],
+    decision = "allow",
+)
+
+prefix_rule(
+    pattern = ["kubectl", "logs"],
+    decision = "allow",
+)
+
+prefix_rule(
+    pattern = ["kubectl", "top"],
+    decision = "allow",
+)
+
+prefix_rule(
+    pattern = ["kubectl", "api-resources"],
+    decision = "allow",
+)
+
+prefix_rule(
+    pattern = ["kubectl", "api-versions"],
+    decision = "allow",
+)
+
+prefix_rule(
+    pattern = ["kubectl", "explain"],
+    decision = "allow",
+)
+
+prefix_rule(
+    pattern = ["kubectl", "cluster-info"],
+    decision = "allow",
+)
+
+prefix_rule(
+    pattern = ["kubectl", "version"],
+    decision = "allow",
+)
+
+prefix_rule(
+    pattern = ["kubectl", "config"],
+    decision = "allow",
+)
+
+prefix_rule(
+    pattern = ["kubectl", "diff"],
+    decision = "allow",
+)
+
+prefix_rule(
+    pattern = ["kubectl", "auth", "can-i"],
+    decision = "allow",
+)
+
+prefix_rule(
+    pattern = ["kubectl", "events"],
+    decision = "allow",
+)
+
+prefix_rule(
+    pattern = ["kubectl", "wait"],
+    decision = "allow",
+)
+
+# 常用只读 shell 命令 — 免确认
+prefix_rule(pattern = ["ls"], decision = "allow")
+prefix_rule(pattern = ["pwd"], decision = "allow")
+prefix_rule(pattern = ["which"], decision = "allow")
+prefix_rule(pattern = ["df"], decision = "allow")
+prefix_rule(pattern = ["du"], decision = "allow")
+prefix_rule(pattern = ["ps"], decision = "allow")
+prefix_rule(pattern = ["free"], decision = "allow")
+prefix_rule(pattern = ["whoami"], decision = "allow")
+prefix_rule(pattern = ["id"], decision = "allow")
+prefix_rule(pattern = ["date"], decision = "allow")
+prefix_rule(pattern = ["uname"], decision = "allow")
+prefix_rule(pattern = ["uptime"], decision = "allow")
+prefix_rule(pattern = ["printenv"], decision = "allow")
+prefix_rule(pattern = ["stat"], decision = "allow")
+prefix_rule(pattern = ["wc"], decision = "allow")
+prefix_rule(pattern = ["file"], decision = "allow")
+prefix_rule(pattern = ["hostname"], decision = "allow")
+prefix_rule(pattern = ["type"], decision = "allow")
+prefix_rule(pattern = ["ip"], decision = "allow")
+prefix_rule(pattern = ["ss"], decision = "allow")
+prefix_rule(pattern = ["dmesg"], decision = "allow")
+prefix_rule(pattern = ["history"], decision = "allow")
+prefix_rule(pattern = ["lscpu"], decision = "allow")
+prefix_rule(pattern = ["lsblk"], decision = "allow")
+prefix_rule(pattern = ["lspci"], decision = "allow")
+prefix_rule(pattern = ["lsusb"], decision = "allow")
+prefix_rule(pattern = ["journalctl"], decision = "allow")
+prefix_rule(pattern = ["systemctl", "list-"], decision = "allow")
+prefix_rule(pattern = ["systemctl", "show"], decision = "allow")
+prefix_rule(pattern = ["systemctl", "is-"], decision = "allow")
+prefix_rule(pattern = ["systemctl", "status"], decision = "allow")
+prefix_rule(pattern = ["systemctl", "cat"], decision = "allow")
+prefix_rule(pattern = ["echo"], decision = "allow")
+prefix_rule(pattern = ["tail"], decision = "allow")
+prefix_rule(pattern = ["head"], decision = "allow")
+prefix_rule(pattern = ["dirname"], decision = "allow")
+prefix_rule(pattern = ["basename"], decision = "allow")
+prefix_rule(pattern = ["readlink"], decision = "allow")
+prefix_rule(pattern = ["realpath"], decision = "allow")
