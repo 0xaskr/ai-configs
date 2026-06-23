@@ -23,6 +23,7 @@
       "Bash(gh issue *)",
       "Bash(uv run *)",
       "Bash(rg *)",
+      "Bash(grep *)",
       "Bash(kubectl get *)",
       "Bash(kubectl describe *)",
       "Bash(kubectl logs *)",

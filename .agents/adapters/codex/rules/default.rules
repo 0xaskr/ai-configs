@@ -123,6 +123,11 @@ prefix_rule(
     decision = "allow",
 )
 
+prefix_rule(
+    pattern = ["grep"],
+    decision = "allow",
+)
+
 # kubectl 只读命令 — 免确认
 prefix_rule(
     pattern = ["kubectl", "get"],
