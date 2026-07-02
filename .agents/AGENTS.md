@@ -66,6 +66,7 @@
 | 分析 TPU kernel 性能、roofline、tiling | `skills/tpu-kernel-perf.md` | domain |
 | 审查 kernel 设计文档、design doc | `skills/kernel-design-review.md` | review |
 | 审查 Pull Request、review 代码变更 | `skills/pr-review.md` | review |
+| 阅读 Codex CLI 历史会话、查找 codex 对话记录 | `skills/codex-session-reader.md` | domain |
 | 确保 skills 系统可用、安装或检查插件 | `skills/superpowers/SKILL.md` | setup |
 
 扩展技能：在 `.agents/skills/` 下创建 `.md` 文件，在此表中注册触发条件即可生效。
